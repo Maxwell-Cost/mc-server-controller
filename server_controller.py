@@ -162,7 +162,7 @@ async def control_server(action):
             send_to_discord(f"❌ **AMP Native Backup failed!** Error log: {e}")
 
 
-        # File monitoring loop
+        # Poll the AMP API to check if the backup is ready for download
         print(f"Waiting for AMP background thread to compile the backup...")
         time.sleep(5)
 
@@ -174,15 +174,35 @@ async def control_server(action):
 
                 # Look through the API list for our backup by name and get the filename
                 matched_backup = None
-                for backup in backups_list:
-                    if backup.get('Name') == backup_name:
-                        matched_backup = backup
-                        break
+                if backups_list:
+                    for backup in backups_list:
+                        # Check for both 'Name' and 'name' keys to handle potential API inconsistencies
+                        b_name = backup.get('Name') or backup.get('name') or ''
+                        b_desc = backup.get('Description') or backup.get('description') or ''
 
+                        # Check if the backup name or description matches our generated backup name
+                        if b_name == backup_name or b_desc == backup_name:
+                            matched_backup = backup
+                            break
+                    
+                    # If no match was found, check if the latest backup has today's date in its filename
+                    if not matched_backup:
+                        newest_backup = backups_list[-1]
+                        today_str = datetime.now().strftime("%Y%m%d")
+                        b_filename = newest_backup.get('FileName') or newest_backup.get('filename') or ''
+                        
+                        if today_str in b_filename:
+                            print(f"   {YELLOW}[Fallback Match]{RESET} Target identified via filename timestamp: {b_filename}")
+                            matched_backup = newest_backup
+
+                    # If we found a matched backup, extract the filename and break the loop
                 if matched_backup:
-                    target_filename = matched_backup.get('FileName')
+                    target_filename = matched_backup.get('FileName') or matched_backup.get('filename')
                     print(f"{RED}API confirmed backup is ready with filesignature: {target_filename}{RESET}")
                     break
+                
+
+
                 print(f"    [{YELLOW}API Check {attempt + 1}/60{RESET}] Backup still processing... retrying in 5 seconds.")
                 time.sleep(5)  # Wait before checking again
             
@@ -193,6 +213,12 @@ async def control_server(action):
         if not target_filename:
             print(f"{YELLOW}Warning: Backup tracking timed out via the API.{RESET}")
             send_to_discord("❌ **Backup Sync Failed:** Python timed out waiting for the AMP API state change.")
+            # Debugging: Print the latest backup info if available
+            if backups_list:
+                    latest = backups_list[-1]
+                    l_name = latest.get('Name') or latest.get('name') or 'Unknown'
+                    l_file = latest.get('FileName') or latest.get('filename') or 'Unknown'
+                    print(f"    [Debug] Newest on server -> Name: '{l_name}', File: '{l_file}'")
             return
         
         # Move the backup to the external hard drive
