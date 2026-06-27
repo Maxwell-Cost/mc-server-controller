@@ -171,17 +171,15 @@ async def control_server(action):
         for attempt in range(ATTEMPTS):
             try:
                 backups_list = await server_instance.get_backups(format_data=False)
-                for backup in backups_list:
-                    print(f"    [RAW DEBUG] Type: {type(backup)} | Data: {repr(backup)}")
 
                 # Look through the API list for our backup by name and get the filename
                 matched_backup = None
                 if backups_list:
                     for backup in backups_list:
                         # Extract backup details
-                        b_name = backup.get('Name')
-                        b_desc = backup.get('Description')
-                        b_id = backup.get('Id')
+                        b_name = backup.get('name')
+                        b_desc = backup.get('description')
+                        b_id = backup.get('id')
 
                         # Check if the backup name or description matches our generated backup name
                         if b_name == backup_name or b_desc == backup_desc:
@@ -191,8 +189,8 @@ async def control_server(action):
                 # If we found a matched backup, extract the filename and break the loop
                 if matched_backup:
                     # Format the date and ID for the filename
-                    raw_timestamp = matched_backup.get('Timestamp')
-                    raw_id = matched_backup.get('Id')
+                    raw_timestamp = matched_backup.get('timestamp')
+                    raw_id = matched_backup.get('id')
 
                     date_part = raw_timestamp[0:10].replace('-', '')
                     time_part = raw_timestamp[11:19].replace(':', '')
@@ -215,7 +213,7 @@ async def control_server(action):
             send_to_discord("❌ **Backup Sync Failed:** Python timed out waiting for the AMP API state change.")
             # Debugging: Print the list of backups retrieved from the API
             for backup in backups_list:
-                print(f" - Backup Name: {backup.get('Name')}, Description: {backup.get('Description')}, ID: {backup.get('Id')}")
+                print(f" - Backup Name: {backup.get('name')}, Description: {backup.get('description')}, ID: {backup.get('id')}")
         
         # Move the backup to the external hard drive
         source_file_path = os.path.join(AMP_BACKUP_DIR, target_filename)
