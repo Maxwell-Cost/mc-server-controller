@@ -3,6 +3,7 @@ import sys
 import requests
 import time
 import asyncio
+import shutil
  
 from ampapi import (
     APIParams,
@@ -23,7 +24,7 @@ def send_to_discord(message):
         print(f"Discord error: {e}")
 
 async def control_server(action):
-    """Controls the Minecraft server by starting or stopping it via the AMP API. Initializes Instance within the API"""
+    """Controls the Minecraft server by starting, stopping, or backing up the instance. Initializes Instance within the API"""
 
     print(f"Logging into AMP API and initalizing instance...")
 
@@ -54,7 +55,9 @@ async def control_server(action):
 
     print(f"{RED}Initialization complete.{RESET}")
 
-
+    # =========================================================================
+    # START ACTION (Boot Sequence)
+    # =========================================================================
 
     if action == "start":
         print(f"Waking up {INSTANCE_NAME} instance...")
@@ -78,6 +81,10 @@ async def control_server(action):
         send_to_discord("⚔️ **The Server is now ONLINE!**")
 
         print(f"{RED}Server Launch Sequence Complete.{RESET}")
+
+    # =========================================================================
+    # STOP ACTION (Graceful Shutdown Sequence with Player Warnings)
+    # =========================================================================        
 
     elif action == "stop":
         print(f"{RED}Starting Graceful Shutdown Sequence...{RESET}")
@@ -127,6 +134,11 @@ async def control_server(action):
         
         send_to_discord("😴 **The server is now OFFLINE.**")
         print(f"{RED}Server Shut Down Sequence Complete.{RESET}")
+
+    # =========================================================================
+    # BACKUP ACTION (Trigger AMP Backup + Ship Result to External Hard Drive)
+    # =========================================================================
+
     elif action == "backup":
         print(f"{RED}Starting Backup Sequence...{RESET}")
 
