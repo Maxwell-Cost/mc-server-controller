@@ -176,29 +176,28 @@ async def control_server(action):
                 matched_backup = None
                 if backups_list:
                     for backup in backups_list:
-                        # Check for both 'Name' and 'name' keys to handle potential API inconsistencies
-                        b_name = backup.get('Name') or backup.get('name') or ''
-                        b_desc = backup.get('Description') or backup.get('description') or ''
-                        b_file = backup.get('FileName') or backup.get('filename') or ''
+                        # Extract backup details
+                        b_name = backup.get('Name')
+                        b_desc = backup.get('Description')
+                        b_id = backup.get('Id')
 
                         # Check if the backup name or description matches our generated backup name
-                        if (b_name == backup_name or b_desc == backup_name) and b_file:
+                        if b_name == backup_name or b_desc == backup_desc:
                             matched_backup = backup
                             break
-                    
-                    # If no match was found, check if the latest backup has today's date in its filename
-                    if not matched_backup:
-                        newest_backup = backups_list[0]
-                        today_str = datetime.now().strftime("%Y%m%d")
-                        b_filename = newest_backup.get('FileName') or newest_backup.get('filename') or ''
-                        
-                        if today_str in b_filename:
-                            print(f"   {ERROR}[Fallback Match]{RESET} Target identified via filename timestamp: {b_filename}")
-                            matched_backup = newest_backup
 
-                    # If we found a matched backup, extract the filename and break the loop
+                # If we found a matched backup, extract the filename and break the loop
                 if matched_backup:
-                    target_filename = matched_backup.get('FileName') or matched_backup.get('filename')
+                    # Format the date and ID for the filename
+                    raw_timestamp = matched_backup.get('Timestamp')
+                    raw_id = matched_backup.get('Id')
+
+                    date_part = raw_timestamp[0:10].replace('-', '')
+                    time_part = raw_timestamp[11:19].replace(':', '')
+
+                    clean_id = raw_id.replace('-', '')
+
+                    target_filename = f"{date_part}-{time_part}-{clean_id}.zip"
                     print(f"{STATUS}API confirmed backup is ready with filesignature: {target_filename}{RESET}")
                     break
                 
