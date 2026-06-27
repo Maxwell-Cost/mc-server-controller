@@ -1,3 +1,4 @@
+from datetime import datetime
 import sys
 import requests
 import time
@@ -52,6 +53,8 @@ async def control_server(action):
         return
 
     print(f"{RED}Initialization complete.{RESET}")
+
+
 
     if action == "start":
         print(f"Waking up {INSTANCE_NAME} instance...")
@@ -124,6 +127,23 @@ async def control_server(action):
         
         send_to_discord("😴 **The server is now OFFLINE.**")
         print(f"{RED}Server Shut Down Sequence Complete.{RESET}")
+    elif action == "backup":
+        print(f"{RED}Starting Backup Sequence...{RESET}")
+
+        # Generate a timestamped backup name and description
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+        backup_name = f"AutoBackup_{datetime.now().strftime('%Y%m%d_%H%M')}"
+        backup_desc = f"Automated cron backup generated on {current_time}"
+        
+        send_to_discord("💾 **The Server is starting a backup.**")
+        
+        try:
+            await server_instance.backup_instance()
+        except Exception as e:
+            print(f"AMP native backup failed: {e}")
+
+        send_to_discord("💾 **The Server backup is complete.**")
+        print(f"{RED}Backup Sequence Complete.{RESET}")
 
 
 if __name__ == "__main__":
