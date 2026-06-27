@@ -179,15 +179,16 @@ async def control_server(action):
                         # Check for both 'Name' and 'name' keys to handle potential API inconsistencies
                         b_name = backup.get('Name') or backup.get('name') or ''
                         b_desc = backup.get('Description') or backup.get('description') or ''
+                        b_file = backup.get('FileName') or backup.get('filename') or ''
 
                         # Check if the backup name or description matches our generated backup name
-                        if b_name == backup_name or b_desc == backup_name:
+                        if (b_name == backup_name or b_desc == backup_name) and b_file:
                             matched_backup = backup
                             break
                     
                     # If no match was found, check if the latest backup has today's date in its filename
                     if not matched_backup:
-                        newest_backup = backups_list[-1]
+                        newest_backup = backups_list[0]
                         today_str = datetime.now().strftime("%Y%m%d")
                         b_filename = newest_backup.get('FileName') or newest_backup.get('filename') or ''
                         
@@ -215,7 +216,7 @@ async def control_server(action):
             send_to_discord("❌ **Backup Sync Failed:** Python timed out waiting for the AMP API state change.")
             # Debugging: Print the latest backup info if available
             if backups_list:
-                    latest = backups_list[-1]
+                    latest = backups_list[0]
                     l_name = latest.get('Name') or latest.get('name') or 'Unknown'
                     l_file = latest.get('FileName') or latest.get('filename') or 'Unknown'
                     print(f"    [Debug] Newest on server -> Name: '{l_name}', File: '{l_file}'")
