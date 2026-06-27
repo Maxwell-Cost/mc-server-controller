@@ -175,15 +175,15 @@ async def control_server(action):
                 # Look through the API list for our backup by name and get the filename
                 matched_backup = None
                 for backup in backups_list:
-                    if backup.name == backup_name:
+                    if backup.get('Name') == backup_name:
                         matched_backup = backup
                         break
 
                 if matched_backup:
-                    target_filename = matched_backup.filename
+                    target_filename = matched_backup.get('FileName')
                     print(f"{RED}API confirmed backup is ready with filesignature: {target_filename}{RESET}")
                     break
-                print(f"    [{YELLOW}API Check {attempt + 1}/12{RESET}] Backup still processing... retrying in 5 seconds.")
+                print(f"    [{YELLOW}API Check {attempt + 1}/60{RESET}] Backup still processing... retrying in 5 seconds.")
                 time.sleep(5)  # Wait before checking again
             
             except Exception as poll_error:
