@@ -172,7 +172,7 @@ async def control_server(action):
             try:
                 backups_list = await server_instance.get_backups(format_data=False)
                 for backup in backups_list:
-                    print(f" - Backup Name: {backup.get('Name')}, Description: {backup.get('Description')}, ID: {backup.get('Id')}")
+                    print(f"    [RAW DEBUG] Type: {type(backup)} | Data: {repr(backup)}")
 
                 # Look through the API list for our backup by name and get the filename
                 matched_backup = None
