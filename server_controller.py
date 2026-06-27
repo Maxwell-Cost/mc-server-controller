@@ -155,8 +155,8 @@ async def control_server(action):
         # Take a backup using the AMP API
         try:
             await server_instance.take_backup(backup_name, backup_desc)
-            print(f"{backup_name} initiated with description: {backup_desc}")
             print(f"{STATUS}AMP backup command successfully dispatched to the server panel.{RESET}")
+            print(f"{backup_name} initiated with description: {backup_desc}")
         except Exception as e:
             print(f"{ERROR}AMP native backup failed: {e}{RESET}")
             send_to_discord(f"❌ **AMP Native Backup failed!** Error log: {e}")
@@ -168,7 +168,7 @@ async def control_server(action):
 
         target_filename = None
 
-        for attempt in range(ATTEMPTS):  # Wait up to 5 minutes (60 attempts * 5 seconds)
+        for attempt in range(ATTEMPTS):
             try:
                 backups_list = await server_instance.get_backups(format_data=False)
 
@@ -209,15 +209,11 @@ async def control_server(action):
 
         # Handle case where the backup was not found after polling
         if not target_filename:
-            print(f"{ERROR}Warning: Backup tracking timed out via the API.{RESET}")
+            print(f"[{ERROR}Warning{RESET}] Backup tracking timed out via the API.")
             send_to_discord("❌ **Backup Sync Failed:** Python timed out waiting for the AMP API state change.")
-            # Debugging: Print the latest backup info if available
-            if backups_list:
-                    latest = backups_list[0]
-                    l_name = latest.get('Name') or latest.get('name') or 'Unknown'
-                    l_file = latest.get('FileName') or latest.get('filename') or 'Unknown'
-                    print(f"    [Debug] Newest on server -> Name: '{l_name}', File: '{l_file}'")
-            return
+            # Debugging: Print the list of backups retrieved from the API
+            for backup in backups_list:
+                print(f" - Backup Name: {backup.get('Name')}, Description: {backup.get('Description')}, Timestamp: {backup.get('Timestamp')}, ID: {backup.get('Id')}")
         
         # Move the backup to the external hard drive
         source_file_path = os.path.join(AMP_BACKUP_DIR, target_filename)
