@@ -138,7 +138,7 @@ async def control_server(action):
         send_to_discord("💾 **The Server is starting a backup.**")
         
         try:
-            await server_instance.backup_instance()
+            await server_instance.take_backup(backup_name, backup_desc)
         except Exception as e:
             print(f"AMP native backup failed: {e}")
 
