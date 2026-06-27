@@ -170,7 +170,7 @@ async def control_server(action):
 
         for attempt in range(60):  # Wait up to 5 minutes (60 attempts * 5 seconds)
             try:
-                backups_list = await server_instance.get_backups(format_data=True)
+                backups_list = await server_instance.get_backups(format_data=False)
 
                 # Look through the API list for our backup by name and get the filename
                 matched_backup = None
