@@ -159,7 +159,7 @@ async def control_server(action):
             print(f"{backup_name} initiated with description: {backup_desc}")
         except Exception as e:
             print(f"{ERROR}AMP native backup failed: {e}{RESET}")
-            send_to_discord(f"❌ **AMP Native Backup failed!** Error log: {e}")
+            send_to_discord(f"❌ **AMP Native Backup failed!**")
 
 
         # Poll the AMP API to check if the backup is ready for download
@@ -171,6 +171,8 @@ async def control_server(action):
         for attempt in range(ATTEMPTS):
             try:
                 backups_list = await server_instance.get_backups(format_data=False)
+                for backup in backups_list:
+                    print(f" - Backup Name: {backup.get('Name')}, Description: {backup.get('Description')}, ID: {backup.get('Id')}")
 
                 # Look through the API list for our backup by name and get the filename
                 matched_backup = None
@@ -202,7 +204,7 @@ async def control_server(action):
                     break
                 
                 print(f"    [{ERROR}API Check {attempt + 1}/{ATTEMPTS}{RESET}] Backup still processing... retrying in {SECONDS_BETWEEN_ATTEMPTS} seconds.")
-                time.sleep(SECONDS_BETWEEN_ATTEMPTS)  # Wait before checking again
+                await asyncio.sleep(SECONDS_BETWEEN_ATTEMPTS)  # Wait before checking again
             
             except Exception as poll_error:
                     print(f"     [{ERROR}Poll Warning{RESET}] Failed to reach API on this attempt: {poll_error}")
@@ -213,7 +215,7 @@ async def control_server(action):
             send_to_discord("❌ **Backup Sync Failed:** Python timed out waiting for the AMP API state change.")
             # Debugging: Print the list of backups retrieved from the API
             for backup in backups_list:
-                print(f" - Backup Name: {backup.get('Name')}, Description: {backup.get('Description')}, Timestamp: {backup.get('Timestamp')}, ID: {backup.get('Id')}")
+                print(f" - Backup Name: {backup.get('Name')}, Description: {backup.get('Description')}, ID: {backup.get('Id')}")
         
         # Move the backup to the external hard drive
         source_file_path = os.path.join(AMP_BACKUP_DIR, target_filename)
@@ -230,8 +232,6 @@ async def control_server(action):
             print(f"     [{ERROR}Warning{RESET}] Could not move backup to external storage: {move_error}")
             send_to_discord(f"❌ **Backup Move Failed:** Could not move {backup_name} to external storage.")
 
-
-        
 if __name__ == "__main__":
     # Check if the user provided an argument (start or stop)
     if len(sys.argv) < 2 or sys.argv[1] not in ["start", "stop", "backup"]:
