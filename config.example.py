@@ -14,4 +14,5 @@ AMP_BACKUP_DIR = f"/home/amp/.ampdata/instances/{HIDDEN_INSTANCE_NAME}/Backups"
 BACKUP_DESTINATION_DIR = "/mnt/backups/minecraft_archives"
 
 RED = "\033[91m"
+YELLOW = "\033[93m"
 RESET = "\033[0m"
